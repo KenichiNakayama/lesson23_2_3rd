@@ -1,0 +1,2 @@
+# Streamlit Cloud用: Windows requirements を参照
+-r requirements_windows.txt

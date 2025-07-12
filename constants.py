@@ -47,6 +47,17 @@ TEMPERATURE = 0.5
 # RAG参照用のデータソース系
 # ==========================================
 RAG_TOP_FOLDER_PATH = "./data"
+
+# チャンク分割設定
+# 問題2 マジックナンバーを修正: チャンク分割パラメータを定数化
+CHUNK_SIZE = 500
+CHUNK_OVERLAP = 50
+CHUNK_SEPARATOR = "\n"
+
+# 関連ドキュメント数設定
+# 問題2 マジックナンバーを修正: 関連ドキュメント数を定数化
+RETRIEVER_SEARCH_K = 5  # 問題1による変更: 3から5に変更
+
 SUPPORTED_EXTENSIONS = {
     ".pdf": PyMuPDFLoader,
     ".docx": Docx2txtLoader,
