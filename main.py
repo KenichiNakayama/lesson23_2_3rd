@@ -45,16 +45,13 @@ try:
     init_success = initialize()
     
     if not init_success:
-        st.warning("⚠️ 初期化処理で問題が発生しましたが、アプリケーションは継続します。")
-        st.info("💡 一部の機能（RAG検索など）が利用できない可能性があります。")
+        st.warning("⚠️ 一部の機能が利用できない可能性があります。")
     
 except Exception as e:
     # エラーログの出力
     logger.error(f"{ct.INITIALIZE_ERROR_MESSAGE}\n{e}")
     # エラーメッセージの画面表示
     st.error(utils.build_error_message(ct.INITIALIZE_ERROR_MESSAGE), icon=ct.ERROR_ICON)
-    st.warning("⚠️ 初期化処理に失敗しましたが、アプリケーションを開始します。")
-    st.info("💡 一部の機能が利用できない可能性があります。")
     # 後続の処理を中断しない（コメントアウト）
     # st.stop()
 
@@ -102,10 +99,6 @@ chat_message = st.chat_input(ct.CHAT_INPUT_HELPER_TEXT)
 # 7. チャット送信時の処理
 ############################################################
 if chat_message:
-    # Retrieverが利用できない場合の警告表示
-    if "retriever" not in st.session_state or st.session_state.retriever is None:
-        st.warning("⚠️ RAG検索機能が利用できません。基本的なチャット機能のみで応答します。")
-    
     # ==========================================
     # 7-1. ユーザーメッセージの表示
     # ==========================================
