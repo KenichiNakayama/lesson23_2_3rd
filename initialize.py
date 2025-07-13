@@ -168,8 +168,25 @@ def initialize_retriever():
         st.info(f"📝 {len(splitted_docs)}個のチャンクに分割しました")
 
         st.info("🔄 ベクターストアの作成中...")
-        # ベクターストアの作成
-        db = Chroma.from_documents(splitted_docs, embedding=embeddings)
+        # ベクターストアの作成（メモリ内で動作するように設定し、SQLite問題を回避）
+        try:
+            # メモリ内での動作を優先
+            db = Chroma.from_documents(
+                splitted_docs, 
+                embedding=embeddings,
+                persist_directory=None  # メモリ内での動作
+            )
+        except Exception as e:
+            st.warning(f"⚠️ Chroma初期化エラー（フォールバック実行中）: {e}")
+            # フォールバックとしてシンプルな設定で再試行
+            import tempfile
+            import os
+            temp_dir = tempfile.mkdtemp()
+            db = Chroma.from_documents(
+                splitted_docs, 
+                embedding=embeddings,
+                persist_directory=temp_dir
+            )
 
         st.info("🔄 Retrieverの作成中...")
         # ベクターストアを検索するRetrieverの作成
