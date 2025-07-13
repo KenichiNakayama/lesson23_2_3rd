@@ -9,7 +9,7 @@ import os
 from dotenv import load_dotenv
 import streamlit as st
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.schema import HumanMessage
+from langchain.schema import HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -129,6 +129,39 @@ def get_llm_response(chat_message):
             ("human", "{input}")
         ]
     )
+
+    # Retrieverが利用できない場合のチェック
+    if "retriever" not in st.session_state or st.session_state.retriever is None:
+        # RAG機能が利用できない場合のシンプルなチャット機能
+        llm = ChatOpenAI(model=ct.MODEL_NAME, temperature=ct.TEMPERATURE)
+        
+        # シンプルなプロンプト（RAG機能なし）
+        simple_prompt = ChatPromptTemplate.from_messages([
+            ("system", "あなたは親切なアシスタントです。ユーザーの質問に丁寧に答えてください。"),
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}")
+        ])
+        
+        # シンプルなチェーンを作成
+        chain = simple_prompt | llm
+        
+        # レスポンス取得
+        llm_response = chain.invoke({
+            "input": chat_message, 
+            "chat_history": st.session_state.chat_history
+        })
+        
+        # 会話履歴に追加
+        st.session_state.chat_history.extend([
+            HumanMessage(content=chat_message), 
+            AIMessage(content=llm_response.content)
+        ])
+        
+        # RAG機能なしのレスポンス形式に合わせる
+        return {
+            "answer": llm_response.content,
+            "context": []  # 空のコンテキスト
+        }
 
     # 会話履歴なしでもLLMに理解してもらえる、独立した入力テキストを取得するためのRetrieverを作成
     history_aware_retriever = create_history_aware_retriever(

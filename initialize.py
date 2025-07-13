@@ -42,14 +42,34 @@ def initialize():
     """
     画面読み込み時に実行する初期化処理
     """
-    # 初期化データの用意
-    initialize_session_state()
-    # ログ出力用にセッションIDを生成
-    initialize_session_id()
-    # ログ出力の設定
-    initialize_logger()
-    # RAGのRetrieverを作成
-    initialize_retriever()
+    try:
+        # 初期化データの用意
+        initialize_session_state()
+        st.success("✅ セッション状態の初期化: 完了")
+        
+        # ログ出力用にセッションIDを生成
+        initialize_session_id()
+        st.success("✅ セッションIDの生成: 完了")
+        
+        # ログ出力の設定
+        initialize_logger()
+        st.success("✅ ログ設定の初期化: 完了")
+        
+        # RAGのRetrieverを作成
+        initialize_retriever()
+        st.success("✅ RAG Retrieverの初期化: 完了")
+        
+        st.success("🎉 すべての初期化処理が正常に完了しました！")
+        
+    except Exception as e:
+        st.error(f"❌ 初期化処理中にエラーが発生しました: {str(e)}")
+        st.error(f"エラータイプ: {type(e).__name__}")
+        import traceback
+        st.error(f"詳細なエラー情報: {traceback.format_exc()}")
+        # エラーが発生してもアプリを停止しない
+        return False
+    
+    return True
 
 
 def initialize_logger():
@@ -108,43 +128,58 @@ def initialize_retriever():
     """
     画面読み込み時にRAGのRetriever（ベクターストアから検索するオブジェクト）を作成
     """
-    # ロガーを読み込むことで、後続の処理中に発生したエラーなどがログファイルに記録される
-    logger = logging.getLogger(ct.LOGGER_NAME)
+    try:
+        # ロガーを読み込むことで、後続の処理中に発生したエラーなどがログファイルに記録される
+        logger = logging.getLogger(ct.LOGGER_NAME)
 
-    # すでにRetrieverが作成済みの場合、後続の処理を中断
-    if "retriever" in st.session_state:
-        return
-    
-    # RAGの参照先となるデータソースの読み込み
-    docs_all = load_data_sources()
+        # すでにRetrieverが作成済みの場合、後続の処理を中断
+        if "retriever" in st.session_state:
+            st.info("ℹ️ Retrieverは既に初期化済みです")
+            return
+        
+        st.info("🔄 データソースの読み込み中...")
+        # RAGの参照先となるデータソースの読み込み
+        docs_all = load_data_sources()
+        st.info(f"📄 {len(docs_all)}個のドキュメントを読み込みました")
 
-    # OSがWindowsの場合、Unicode正規化と、cp932（Windows用の文字コード）で表現できない文字を除去
-    for doc in docs_all:
-        doc.page_content = adjust_string(doc.page_content)
-        for key in doc.metadata:
-            doc.metadata[key] = adjust_string(doc.metadata[key])
-    
-    # 埋め込みモデルの用意
-    embeddings = OpenAIEmbeddings()
-    
-    # チャンク分割用のオブジェクトを作成
-    # 問題2 マジックナンバーを修正: 定数を使用してチャンク分割パラメータを設定
-    text_splitter = CharacterTextSplitter(
-        chunk_size=ct.CHUNK_SIZE,
-        chunk_overlap=ct.CHUNK_OVERLAP,
-        separator=ct.CHUNK_SEPARATOR
-    )
+        st.info("🔄 文字列の正規化処理中...")
+        # OSがWindowsの場合、Unicode正規化と、cp932（Windows用の文字コード）で表現できない文字を除去
+        for doc in docs_all:
+            doc.page_content = adjust_string(doc.page_content)
+            for key in doc.metadata:
+                doc.metadata[key] = adjust_string(doc.metadata[key])
+        
+        st.info("🔄 埋め込みモデルの初期化中...")
+        # 埋め込みモデルの用意
+        embeddings = OpenAIEmbeddings()
+        
+        st.info("🔄 チャンク分割の準備中...")
+        # チャンク分割用のオブジェクトを作成
+        # 問題2 マジックナンバーを修正: 定数を使用してチャンク分割パラメータを設定
+        text_splitter = CharacterTextSplitter(
+            chunk_size=ct.CHUNK_SIZE,
+            chunk_overlap=ct.CHUNK_OVERLAP,
+            separator=ct.CHUNK_SEPARATOR
+        )
 
-    # チャンク分割を実施
-    splitted_docs = text_splitter.split_documents(docs_all)
+        st.info("🔄 ドキュメントのチャンク分割中...")
+        # チャンク分割を実施
+        splitted_docs = text_splitter.split_documents(docs_all)
+        st.info(f"📝 {len(splitted_docs)}個のチャンクに分割しました")
 
-    # ベクターストアの作成
-    db = Chroma.from_documents(splitted_docs, embedding=embeddings)
+        st.info("🔄 ベクターストアの作成中...")
+        # ベクターストアの作成
+        db = Chroma.from_documents(splitted_docs, embedding=embeddings)
 
-    # ベクターストアを検索するRetrieverの作成
-    # 問題1による変更: 関連ドキュメント数を3から5に変更
-    # 問題2 マジックナンバーを修正: 定数を使用して関連ドキュメント数を設定
-    st.session_state.retriever = db.as_retriever(search_kwargs={"k": ct.RETRIEVER_SEARCH_K})
+        st.info("🔄 Retrieverの作成中...")
+        # ベクターストアを検索するRetrieverの作成
+        # 問題1による変更: 関連ドキュメント数を3から5に変更
+        # 問題2 マジックナンバーを修正: 定数を使用して関連ドキュメント数を設定
+        st.session_state.retriever = db.as_retriever(search_kwargs={"k": ct.RETRIEVER_SEARCH_K})
+        
+    except Exception as e:
+        st.error(f"❌ Retriever初期化中にエラー: {str(e)}")
+        raise e
 
 
 def initialize_session_state():
