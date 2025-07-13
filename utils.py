@@ -46,6 +46,38 @@ def get_source_icon(source):
     return icon
 
 
+# 問題4 参照ページの表示
+def is_pdf_file(file_path):
+    """
+    ファイルパスがPDFファイルかどうかを判定
+
+    Args:
+        file_path: ファイルパス
+
+    Returns:
+        PDFファイルの場合True、そうでなければFalse
+    """
+    return file_path.lower().endswith('.pdf')
+
+
+# 問題4 参照ページの表示
+def format_source_with_page(file_path, page_number=None):
+    """
+    ファイルパスとページ番号を組み合わせて表示用の文字列を作成
+
+    Args:
+        file_path: ファイルパス
+        page_number: ページ番号（PDFファイルの場合のみ）
+
+    Returns:
+        表示用の文字列
+    """
+    if is_pdf_file(file_path) and page_number is not None:
+        return f"{file_path} （ページNo.{page_number}）"
+    else:
+        return file_path
+
+
 def build_error_message(message):
     """
     エラーメッセージと管理者問い合わせテンプレートの連結
