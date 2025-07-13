@@ -15,8 +15,6 @@ build==1.2.2.post1
 cachetools==5.5.1
 certifi==2024.12.14
 charset-normalizer==3.4.1
-chroma-hnswlib==0.7.3
-chromadb==0.4.24
 click==8.1.8
 colorama==0.4.6
 coloredlogs==15.0.1
@@ -25,6 +23,7 @@ Deprecated==1.2.18
 distro==1.9.0
 docx2txt==0.8
 durationpy==0.9
+faiss-cpu==1.9.0
 fastapi==0.115.7
 filelock==3.17.0
 flatbuffers==25.1.24

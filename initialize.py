@@ -22,7 +22,7 @@ from docx import Document
 from langchain_community.document_loaders import WebBaseLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 import constants as ct
 
 
@@ -168,25 +168,9 @@ def initialize_retriever():
         st.info(f"📝 {len(splitted_docs)}個のチャンクに分割しました")
 
         st.info("🔄 ベクターストアの作成中...")
-        # ベクターストアの作成（メモリ内で動作するように設定し、SQLite問題を回避）
-        try:
-            # メモリ内での動作を優先
-            db = Chroma.from_documents(
-                splitted_docs, 
-                embedding=embeddings,
-                persist_directory=None  # メモリ内での動作
-            )
-        except Exception as e:
-            st.warning(f"⚠️ Chroma初期化エラー（フォールバック実行中）: {e}")
-            # フォールバックとしてシンプルな設定で再試行
-            import tempfile
-            import os
-            temp_dir = tempfile.mkdtemp()
-            db = Chroma.from_documents(
-                splitted_docs, 
-                embedding=embeddings,
-                persist_directory=temp_dir
-            )
+        # ベクターストアの作成（FAISSを使用してSQLite問題を回避）
+        st.info("💡 FAISS（Facebook AI Similarity Search）を使用してベクターストアを作成します")
+        db = FAISS.from_documents(splitted_docs, embeddings)
 
         st.info("🔄 Retrieverの作成中...")
         # ベクターストアを検索するRetrieverの作成
