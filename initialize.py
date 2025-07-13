@@ -11,7 +11,12 @@ from logging.handlers import TimedRotatingFileHandler
 from uuid import uuid4
 import sys
 import unicodedata
-from dotenv import load_dotenv
+# 「.env」ファイルから環境変数を読み込むための関数（エラー処理付き）
+try:
+    from dotenv import load_dotenv
+    DOTENV_AVAILABLE = True
+except ImportError:
+    DOTENV_AVAILABLE = False
 import streamlit as st
 from docx import Document
 from langchain_community.document_loaders import WebBaseLoader
@@ -24,8 +29,9 @@ import constants as ct
 ############################################################
 # 設定関連
 ############################################################
-# 「.env」ファイルで定義した環境変数の読み込み
-load_dotenv()
+# 「.env」ファイルで定義した環境変数の読み込み（利用可能な場合のみ）
+if DOTENV_AVAILABLE:
+    load_dotenv()
 
 
 ############################################################

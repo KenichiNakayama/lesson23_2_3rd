@@ -5,8 +5,12 @@
 ############################################################
 # 1. ライブラリの読み込み
 ############################################################
-# 「.env」ファイルから環境変数を読み込むための関数
-from dotenv import load_dotenv
+# 「.env」ファイルから環境変数を読み込むための関数（エラー処理付き）
+try:
+    from dotenv import load_dotenv
+    DOTENV_AVAILABLE = True
+except ImportError:
+    DOTENV_AVAILABLE = False
 # ログ出力を行うためのモジュール
 import logging
 # streamlitアプリの表示を担当するモジュール
